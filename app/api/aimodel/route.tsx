@@ -60,10 +60,10 @@ Output Schema:
         "hotel_address": "string",
         "price_per_night": "string",
         "hotel_image_url": "string",
-        "geo_cordinates": {
+        "geo_coordinates": {
           "latitude": "number",
-          "longitude": "number",
-        }
+          "longitude": "number"
+        },
         "rating": "number",
         "description": "string"
       }
@@ -80,7 +80,7 @@ Output Schema:
             "place_image_url": "string",
             "geo_coordinates": {
               "latitude": "number",
-              "longitude": "number',
+              "longitude": "number"
             },
             "place_address": "string",
             "ticket_pricing": "string",

@@ -7,6 +7,7 @@ import { useUser } from "@clerk/nextjs";
 import { UserDetailContext } from "@/context/UserDetailContext";
 import { TripContextType, TripDetailContext } from "@/context/TripDetailContext";
 import { TripInfo } from "./create-new-trip/_components/ChatBox";
+import { MapProvider } from "@/context/MapContext";
 
 const Provider = ({
   children,
@@ -35,13 +36,14 @@ const Provider = ({
     }
   };
   return (
-    <UserDetailContext.Provider value={{userDetail, setUserDetail}}>
-      <TripDetailContext.Provider value={{tripDetailInfo, setTripDetailInfo}}>
-        
-      <div>
-        <Header />
-        {children}
-      </div>
+    <UserDetailContext.Provider value={{ userDetail, setUserDetail }}>
+      <TripDetailContext.Provider value={{ tripDetailInfo, setTripDetailInfo }}>
+        <MapProvider>
+          <div>
+            <Header />
+            {children}
+          </div>
+        </MapProvider>
       </TripDetailContext.Provider>
     </UserDetailContext.Provider>
   );
@@ -49,10 +51,10 @@ const Provider = ({
 
 export default Provider;
 
-export const useUserDetail = ()=>{
+export const useUserDetail = () => {
   return useContext(UserDetailContext);
 }
 
-export const useTripDetail =():TripContextType | undefined=>{
+export const useTripDetail = (): TripContextType | undefined => {
   return useContext(TripDetailContext)
 }

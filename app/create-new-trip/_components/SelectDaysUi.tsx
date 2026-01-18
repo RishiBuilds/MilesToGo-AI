@@ -35,7 +35,7 @@ function SelectDays({ onSelectedOption }: Props) {
                     <Minus className="h-4 w-4" />
                 </motion.button>
 
-                <div className="text-center min-w-[80px]">
+                <div className="text-center min-w-80px">
                     <span className="text-3xl font-bold text-foreground">{days}</span>
                     <span className="text-muted-foreground text-sm ml-1">
                         {days === 1 ? 'Day' : 'Days'}
