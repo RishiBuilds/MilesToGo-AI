@@ -1,2 +1,1 @@
-# MilesToGo-AI
-MilesToGo AI is an AI-powered smart travel planning platform that generates dynamic, personalized itineraries for travelers while enabling local vendors to optimize pricing and visibility using real-time demand, seasonality, weather, and event-based intelligence.
+MilesToGo AI is an AI-powered smart travel planning web application that simplifies trip planning through intelligent automation and immersive visualization. Users provide basic trip details, and the AI generates personalized itineraries including hotel options, activities, maps, and interactive 3D globe views.
