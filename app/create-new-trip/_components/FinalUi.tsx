@@ -1,7 +1,5 @@
 'use client';
-import { Button } from "@/components/ui/button";
-import { Globe2, Loader2, CheckCircle, Sparkles } from "lucide-react";
-import { motion } from "motion/react";
+import { Globe2, Loader2, CheckCircle } from "lucide-react";
 
 type Props = {
     viewTrip: () => void;
@@ -10,71 +8,53 @@ type Props = {
 
 function FinalUi({ viewTrip, disable }: Props) {
     return (
-        <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col items-center justify-center p-6 mt-3 rounded-xl border border-primary/20 bg-linear-to-br from-primary/5 to-purple-500/5"
-        >
+        <div className="panel flex flex-col items-center justify-center p-5 mt-3 animate-fade-in">
             {disable ? (
                 <>
-                    <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                        className="p-3 rounded-full bg-primary/10"
-                    >
-                        <Globe2 className="h-8 w-8 text-primary" />
-                    </motion.div>
+                    {/* Loading state */}
+                    <div className="p-3 rounded-lg bg-card border border-border">
+                        <Globe2 className="h-6 w-6 text-primary animate-spin" aria-hidden="true" />
+                    </div>
 
-                    <h3 className="mt-4 text-lg font-semibold text-foreground flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-primary" />
-                        Creating your dream trip...
+                    <h3 className="mt-3 text-sm font-medium text-foreground">
+                        Creating your trip...
                     </h3>
 
-                    <p className="text-sm text-muted-foreground text-center mt-1 max-w-xs">
-                        Finding the best destinations, activities, and accommodations just for you
+                    <p className="text-xs text-muted-foreground text-center mt-1 max-w-xs">
+                        Finding the best destinations and accommodations for you
                     </p>
 
-                    {/* Progress dots */}
-                    <div className="flex items-center gap-1.5 mt-4">
-                        {[0, 1, 2].map((i) => (
-                            <motion.span
-                                key={i}
-                                animate={{ scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }}
-                                transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
-                                className="w-2 h-2 rounded-full bg-primary"
-                            />
-                        ))}
+                    {/* Loading dots */}
+                    <div className="loading-dots mt-3">
+                        <span></span>
+                        <span></span>
+                        <span></span>
                     </div>
                 </>
             ) : (
                 <>
-                    <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: "spring", stiffness: 200 }}
-                        className="p-3 rounded-full bg-emerald-500/10"
-                    >
-                        <CheckCircle className="h-8 w-8 text-emerald-500" />
-                    </motion.div>
+                    {/* Success state */}
+                    <div className="p-3 rounded-lg bg-success-muted border border-success/20">
+                        <CheckCircle className="h-6 w-6 text-success" aria-hidden="true" />
+                    </div>
 
-                    <h3 className="mt-4 text-lg font-semibold text-foreground">
-                        Your trip is ready! 🎉
+                    <h3 className="mt-3 text-sm font-medium text-foreground">
+                        Your trip is ready!
                     </h3>
 
-                    <p className="text-sm text-muted-foreground text-center mt-1">
+                    <p className="text-xs text-muted-foreground text-center mt-1">
                         We've crafted a personalized itinerary based on your preferences
                     </p>
 
-                    <Button
+                    <button
                         onClick={viewTrip}
-                        className="mt-4 w-full gap-2 bg-linear-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700 shadow-lg shadow-primary/25"
+                        className="mt-4 w-full px-4 py-2 rounded-md bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     >
-                        <Sparkles className="h-4 w-4" />
                         View Your Trip
-                    </Button>
+                    </button>
                 </>
             )}
-        </motion.div>
+        </div>
     );
 }
 

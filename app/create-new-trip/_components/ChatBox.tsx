@@ -1,9 +1,8 @@
 "use client";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import axios from "axios";
-import { Ellipsis, Send, Mic, MicOff } from "lucide-react";
-import React, { useEffect, useState, useCallback } from "react";
+import { Send, Mic, MicOff, Loader2 } from "lucide-react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import EmptyBoxState from "./EmptyBoxState";
 import GroupSizeUi from "./GroupSizeUi";
 import BudgetUi from "./BudgetUi";
@@ -109,13 +108,15 @@ const ChatBox = () => {
   const [tripDetail, setTripDetail] = useState<TripInfo>()
   const [lastDetectedDestination, setLastDetectedDestination] = useState<string | null>(null);
 
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
   const SaveTripDetail = useMutation(api.tripDetail.CreateTripDetail)
-  const { userDetail, setUserDetail } = useUserDetail()
+  const { userDetail } = useUserDetail()
   // @ts-ignore
   const { tripDetailInfo, setTripDetailInfo } = useTripDetail()
 
   // Map context integration
-  const { focusOnDestination, addMarker, clearMarkers, setMarkers } = useMap();
+  const { focusOnDestination, addMarker, clearMarkers } = useMap();
 
   // Voice input integration
   const {
@@ -125,10 +126,8 @@ const ChatBox = () => {
     error: voiceError,
     isSupported: isVoiceSupported,
     toggleListening,
-    clearTranscript,
   } = useVoiceInput({
     onTranscript: (text) => {
-      // When voice transcription completes, set it as user input
       setUserInput((prev) => (prev ? prev + " " + text : text));
     },
   });
@@ -138,11 +137,19 @@ const ChatBox = () => {
     ? (userInput || "") + (userInput ? " " : "") + interimTranscript
     : userInput || "";
 
+  // Auto-scroll to bottom when messages change
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, loading, scrollToBottom]);
+
   // Function to detect and focus on destination from user input
   const detectAndFocusDestination = useCallback((text: string) => {
     const lowerText = text.toLowerCase();
 
-    // Check for known destinations
     for (const [city, coords] of Object.entries(DESTINATION_COORDS)) {
       if (lowerText.includes(city) && city !== lastDetectedDestination) {
         setLastDetectedDestination(city);
@@ -157,7 +164,6 @@ const ChatBox = () => {
   const populateMapWithTripData = useCallback((trip: TripInfo) => {
     clearMarkers();
 
-    // Add hotel markers
     trip.hotels?.forEach((hotel, index) => {
       if (hotel.geo_coordinates?.latitude && hotel.geo_coordinates?.longitude) {
         addMarker({
@@ -170,7 +176,6 @@ const ChatBox = () => {
       }
     });
 
-    // Add activity markers
     trip.itinerary?.forEach((day) => {
       day.activities?.forEach((activity, index) => {
         if (activity.geo_coordinates?.latitude && activity.geo_coordinates?.longitude) {
@@ -190,7 +195,6 @@ const ChatBox = () => {
     if (!userInput?.trim()) return;
     setLoading(true);
 
-    // Detect destination from user input and focus globe
     detectAndFocusDestination(userInput);
 
     setUserInput("");
@@ -222,7 +226,6 @@ const ChatBox = () => {
       setTripDetail(tripPlan);
       setTripDetailInfo(tripPlan);
 
-      // Populate map with trip data
       if (tripPlan) {
         populateMapWithTripData(tripPlan);
       }
@@ -237,9 +240,15 @@ const ChatBox = () => {
     setLoading(false);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      onSend();
+    }
+  };
+
   const RenderGenerativeUi = (ui: string) => {
     if (ui == "budget") {
-      // render budget ui compoenet
       return (
         <BudgetUi
           onSelectedOption={(v: string) => {
@@ -249,7 +258,6 @@ const ChatBox = () => {
         />
       );
     } else if (ui == "groupSize") {
-      // render group size ui component
       return (
         <GroupSizeUi
           onSelectedOption={(v: string) => {
@@ -280,7 +288,6 @@ const ChatBox = () => {
     if (lastMsg?.ui == 'final') {
       setIsFinal(true)
       setUserInput("Ok, Great!")
-
     }
   }, [messages])
 
@@ -289,121 +296,144 @@ const ChatBox = () => {
       onSend()
     }
   }, [isFinal])
+
   return (
-    <div className="h-[85vh] flex flex-col border shadow-xl hover:shadow-primary rounded-2xl p-3 sm:p-5">
-      {messages.length == 0 && (
-        <EmptyBoxState
-          onSelectOption={(v: string) => {
-            setUserInput(v);
-            onSend();
-          }}
-        />
+    <div className="h-full flex flex-col bg-background">
+      {/* Empty state */}
+      {messages.length === 0 && (
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+          <EmptyBoxState
+            onSelectOption={(v: string) => {
+              setUserInput(v);
+              onSend();
+            }}
+          />
+        </div>
       )}
 
-      {/* display message */}
-      <section className="flex-1 overflow-y-auto p-2 sm:p-4">
-        {messages.map((msg: Message, index) =>
-          msg.role == "user" ? (
-            <div className="flex justify-end mt-2" key={index}>
-              <div className="max-w-[85%] sm:max-w-md md:max-w-lg bg-primary text-white px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base">
-                {msg.content}
-              </div>
-            </div>
-          ) : (
-            <div className="flex justify-start mt-2" key={index}>
-              <div className="max-w-[85%] sm:max-w-md md:max-w-lg bg-gray-300 text-black px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base">
-                {msg.content}
-                {RenderGenerativeUi(msg.ui ?? "")}
-              </div>
-            </div>
-          )
-        )}
+      {/* Messages area - flat panels with borders, no bubbles */}
+      {messages.length > 0 && (
+        <section className="flex-1 overflow-y-auto scrollbar-hide">
+          <div className="divide-y divide-border">
+            {messages.map((msg: Message, index) => (
+              <div
+                key={index}
+                className={`chat-message ${msg.role === "user" ? "chat-message-user" : "chat-message-assistant"
+                  }`}
+              >
+                {/* Role indicator */}
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    {msg.role === "user" ? "You" : "Assistant"}
+                  </span>
+                </div>
 
-        {loading && (
-          <div className="flex justify-start mt-2">
-            <div className="max-w-[85%] sm:max-w-md md:max-w-lg bg-transparent text-black px-3 sm:px-4 py-2 rounded-lg">
-              <Ellipsis className="animate-bounce " />
-            </div>
+                {/* Message content */}
+                <div className="text-sm text-foreground leading-relaxed">
+                  {msg.content}
+                </div>
+
+                {/* Generative UI */}
+                {msg.ui && (
+                  <div className="mt-3">
+                    {RenderGenerativeUi(msg.ui)}
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {/* Loading state - subtle */}
+            {loading && (
+              <div className="chat-message chat-message-assistant">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    Assistant
+                  </span>
+                </div>
+                <div className="loading-dots py-2">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+            )}
+          </div>
+          <div ref={messagesEndRef} />
+        </section>
+      )}
+
+      {/* Input bar - minimal, keyboard-first, sticky at bottom */}
+      <section className="border-t border-border bg-card p-3 sm:p-4">
+        {/* Voice listening indicator */}
+        {isListening && (
+          <div className="flex items-center gap-2 mb-2 px-2 py-1 rounded bg-primary/10 border border-primary/20 w-fit">
+            <span className="status-dot status-dot-pending" />
+            <span className="text-xs font-medium text-primary">Listening...</span>
           </div>
         )}
-      </section>
 
-      {/* user input */}
-      <section>
-        <div className="border rounded-2xl p-3 sm:p-4 relative w-full">
-          {/* Voice listening indicator */}
-          {isListening && (
-            <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 backdrop-blur-sm border border-primary/20">
-              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              <span className="text-xs font-medium text-primary">Listening...</span>
-              <div className="flex items-center gap-0.5">
-                {[...Array(4)].map((_, i) => (
-                  <span
-                    key={i}
-                    className="w-0.5 bg-primary rounded-full animate-pulse"
-                    style={{
-                      height: `${8 + Math.sin(i) * 4}px`,
-                      animationDelay: `${i * 100}ms`,
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+        {/* Voice error message */}
+        {voiceError && (
+          <div className="flex items-center gap-2 mb-2 px-2 py-1 rounded bg-danger-muted border border-danger/20 w-fit">
+            <span className="text-xs text-danger">{voiceError}</span>
+          </div>
+        )}
 
-          {/* Voice error message */}
-          {voiceError && (
-            <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-destructive/90 text-destructive-foreground text-xs">
-              {voiceError}
-            </div>
-          )}
-
+        <div className="input-bar flex items-end gap-2 p-2">
           <Textarea
-            placeholder={isListening ? "Listening... speak now" : "Start Conversation with AI To 'Create New Trip'"}
-            className="w-full min-h-60px sm:min-h-80px md:min-h-100px bg-transparent border-none focus-visible:ring-0 shadow-none resize-y text-sm sm:text-base pr-24"
+            placeholder={isListening ? "Speak now..." : "Message AI assistant..."}
+            className="flex-1 min-h-[40px] max-h-[120px] bg-transparent border-none resize-none text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
             onChange={(event) => setUserInput(event.target.value)}
+            onKeyDown={handleKeyDown}
             value={displayValue}
+            rows={1}
+            aria-label="Message input"
           />
 
-          {/* Action buttons */}
-          <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 flex items-center gap-2">
-            {/* Microphone button */}
+          {/* Action icons */}
+          <div className="flex items-center gap-1">
+            {/* Microphone button - icon only */}
             {isVoiceSupported && (
-              <Button
+              <button
                 type="button"
-                size="icon"
-                variant={isListening ? "default" : "ghost"}
                 onClick={toggleListening}
                 aria-label={isListening ? "Stop voice input" : "Start voice input"}
                 aria-pressed={isListening}
-                className={`relative cursor-pointer transition-all duration-200 ${isListening ? "bg-primary text-primary-foreground" : "hover:bg-primary/10"
-                  }`}
+                className={`action-icon ${isListening ? "!bg-primary !text-primary-foreground" : ""}`}
               >
                 {isListening ? (
-                  <MicOff className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <MicOff className="h-4 w-4" aria-hidden="true" />
                 ) : (
-                  <Mic className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <Mic className="h-4 w-4" aria-hidden="true" />
                 )}
-                {isListening && (
-                  <span className="absolute inset-0 rounded-md animate-ping bg-primary/30" />
-                )}
-              </Button>
+              </button>
             )}
 
-            {/* Send button */}
-            <Button
-              size="icon"
-              className="cursor-pointer"
+            {/* Send button - icon only */}
+            <button
+              type="button"
               onClick={() => onSend()}
-              disabled={loading}
+              disabled={loading || !userInput?.trim()}
+              aria-label="Send message"
+              className="action-icon !bg-primary !text-primary-foreground hover:!bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Send className="h-4 w-4 sm:h-5 sm:w-5" />
-            </Button>
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <Send className="h-4 w-4" aria-hidden="true" />
+              )}
+            </button>
           </div>
+        </div>
+
+        {/* Keyboard hint */}
+        <div className="mt-2 px-2">
+          <span className="text-xs text-muted-foreground">
+            Press <kbd className="px-1 py-0.5 rounded bg-accent text-foreground font-mono text-[10px]">Enter</kbd> to send, <kbd className="px-1 py-0.5 rounded bg-accent text-foreground font-mono text-[10px]">Shift+Enter</kbd> for new line
+          </span>
         </div>
       </section>
     </div>
-
   );
 };
 

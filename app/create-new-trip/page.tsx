@@ -1,12 +1,12 @@
 'use client'
-import React, { useEffect, useRef } from 'react'
+import React from 'react'
 import ChatBox from './_components/ChatBox'
 import GlobalMap from './_components/GlobalMap'
 import Itinerary from './_components/Itinerary'
 import { useTripDetail } from '../provider'
 import { useMap } from '@/context/MapContext'
-import { motion, AnimatePresence } from 'motion/react'
-import { Globe, MessageSquare, Map } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { Globe, MessageSquare, Map, MapPin } from 'lucide-react'
 
 function CreateNewTrip() {
   const tripContext = useTripDetail()
@@ -14,83 +14,75 @@ function CreateNewTrip() {
   const hasTripData = !!tripDetailInfo?.destination
 
   return (
-    <div className='min-h-screen px-4 py-6 sm:px-6 md:px-10 lg:px-12 xl:px-16'>
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-6"
-      >
-        <h1 className='font-bold text-2xl sm:text-3xl lg:text-4xl flex items-center gap-3'>
-          <span className="p-2 rounded-xl bg-primary/10">
-            <Globe className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-          </span>
-          Create New Trip
-        </h1>
-        <p className="mt-2 text-muted-foreground text-sm sm:text-base">
-          Chat with AI to plan your perfect adventure
-        </p>
-      </motion.div>
+    <div className='min-h-screen bg-background pt-14'>
+      {/* Main Layout: Chat + Map/Itinerary - Two column desktop */}
+      <div className='layout-split h-chat-viewport'>
+        {/* Left Panel - AI Chat */}
+        <div className="order-2 lg:order-1 flex flex-col border-r border-border">
+          {/* Panel header */}
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-border bg-card/50">
+            <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              AI Trip Planner
+            </span>
+          </div>
 
-      {/* Main Layout: Chat + Map/Itinerary */}
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6'>
-        {/* Left Panel - Chat */}
-        <motion.div
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.1 }}
-          className="order-2 lg:order-1"
-        >
-          <div className="sticky top-4">
-            <div className="flex items-center gap-2 mb-3">
-              <MessageSquare className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium text-muted-foreground">AI Trip Planner</span>
-            </div>
+          {/* Chat content */}
+          <div className="flex-1 overflow-hidden">
             <ChatBox />
           </div>
-        </motion.div>
+        </div>
 
         {/* Right Panel - Map / Itinerary */}
-        <motion.div
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-          className="order-1 lg:order-2"
-        >
-          <div className="sticky top-4">
+        <div className="order-1 lg:order-2 flex flex-col bg-background">
+          {/* Panel header */}
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-border bg-card/50">
+            {hasTripData ? (
+              <>
+                <Map className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Your Itinerary
+                </span>
+              </>
+            ) : (
+              <>
+                <Globe className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Interactive Globe
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* Content - Map or Itinerary */}
+          <div className="flex-1 overflow-hidden">
             <AnimatePresence mode="wait">
               {hasTripData ? (
                 <motion.div
                   key="itinerary"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.3 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="h-full"
                 >
-                  <div className="flex items-center gap-2 mb-3">
-                    <Map className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium text-muted-foreground">Your Itinerary</span>
-                  </div>
                   <Itinerary />
                 </motion.div>
               ) : (
                 <motion.div
                   key="globe"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.3 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="h-full relative"
                 >
-                  <div className="flex items-center gap-2 mb-3">
-                    <Globe className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium text-muted-foreground">Interactive Globe</span>
-                  </div>
                   <MapSection />
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   )
@@ -101,51 +93,52 @@ function MapSection() {
   const { focusLocation, markers } = useMap()
 
   return (
-    <div className="h-[85vh] rounded-2xl border border-border/50 overflow-hidden shadow-xl bg-black/5 relative">
+    <div className="h-full relative bg-card">
       {/* Globe container */}
       <GlobalMap
         autoRotate={!focusLocation}
         autoRotateSpeed={0.3}
       />
 
-      {/* Overlay info when markers exist */}
+      {/* Marker info overlay - subtle, functional */}
       <AnimatePresence>
         {markers.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.15 }}
             className="absolute bottom-4 left-4 right-4"
           >
-            <div className="bg-black/80 backdrop-blur-md rounded-xl p-4 border border-white/10">
-              <div className="flex items-center gap-2 text-white/90">
-                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+            <div className="panel px-3 py-2">
+              <div className="flex items-center gap-2 text-foreground">
+                <span className="status-dot status-dot-active" />
                 <span className="text-sm font-medium">
                   {markers.length} location{markers.length !== 1 ? 's' : ''} highlighted
                 </span>
               </div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {markers.slice(0, 3).map((marker) => (
-                  <span
-                    key={marker.id}
-                    className="px-2 py-1 text-xs rounded-full bg-white/10 text-white/80"
-                  >
-                    {marker.label}
-                  </span>
-                ))}
-                {markers.length > 3 && (
-                  <span className="px-2 py-1 text-xs rounded-full bg-primary/20 text-primary">
-                    +{markers.length - 3} more
-                  </span>
-                )}
-              </div>
+              {markers.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {markers.slice(0, 4).map((marker) => (
+                    <span
+                      key={marker.id}
+                      className="badge badge-primary"
+                    >
+                      <MapPin className="h-3 w-3 mr-1" />
+                      {marker.label}
+                    </span>
+                  ))}
+                  {markers.length > 4 && (
+                    <span className="badge badge-primary">
+                      +{markers.length - 4} more
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Decorative gradient overlay */}
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/20 via-transparent to-transparent" />
     </div>
   )
 }

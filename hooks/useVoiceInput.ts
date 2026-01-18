@@ -131,11 +131,9 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}): UseVoiceInput
                 }
 
                 if (finalTranscript) {
-                    setTranscript((prev) => {
-                        const newTranscript = prev + finalTranscript;
-                        onTranscriptRef.current?.(newTranscript);
-                        return newTranscript;
-                    });
+                    // Pass only the NEW final transcript to the callback, not accumulated
+                    onTranscriptRef.current?.(finalTranscript.trim());
+                    setTranscript((prev) => prev + finalTranscript);
                     setInterimTranscript("");
                 }
 
