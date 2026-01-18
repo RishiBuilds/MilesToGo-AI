@@ -1,7 +1,7 @@
 'use client';
 import { suggestions } from '@/app/_components/Hero';
 import React from 'react';
-import { motion } from 'motion/react';
+import { Sparkles } from 'lucide-react';
 
 type Props = {
   onSelectOption: (value: string) => void;
@@ -9,43 +9,41 @@ type Props = {
 
 function EmptyBoxState({ onSelectOption }: Props) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="flex flex-col items-center text-center py-4"
-    >
-      <h2 className="text-xl sm:text-2xl font-bold text-foreground">
-        Start Planning Your{' '}
-        <span className="gradient-text">Dream Trip</span>
+    <div className="flex flex-col items-center text-center py-8 animate-fade-in">
+      <div className="p-2 rounded-lg bg-primary/10 border border-primary/20 mb-4">
+        <Sparkles className="h-5 w-5 text-primary" aria-hidden="true" />
+      </div>
+
+      <h2 className="text-lg font-semibold text-foreground">
+        Start Planning Your Trip
       </h2>
 
-      <p className="text-sm text-muted-foreground mt-2 max-w-sm">
-        Share your travel preferences and let AI create the perfect itinerary for you
+      <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+        Share your travel preferences and let AI create the perfect itinerary
       </p>
 
-      <div className="w-full mt-4 space-y-2">
+      <div className="w-full mt-6 space-y-2">
         {suggestions.map((suggestion, index) => (
-          <motion.button
+          <button
             key={index}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 + index * 0.1 }}
-            whileHover={{ scale: 1.01, x: 4 }}
-            whileTap={{ scale: 0.99 }}
             onClick={() => onSelectOption(suggestion.title)}
-            className="w-full flex items-center gap-3 p-3 rounded-xl border border-border bg-card/50 hover:border-primary hover:bg-primary/5 transition-all duration-200 text-left group"
+            className="card-interactive w-full flex items-center gap-3 p-3 text-left group"
           >
-            <span className={`p-2 rounded-lg bg-linear-to-br ${suggestion.gradient} text-white shadow-lg group-hover:scale-110 transition-transform`}>
+            <span
+              className="p-2 rounded-md bg-card border border-border text-muted-foreground group-hover:text-primary group-hover:border-primary/50 transition-colors"
+              aria-hidden="true"
+            >
               {suggestion.icon}
             </span>
-            <span className="font-medium text-foreground group-hover:text-primary transition-colors">
-              {suggestion.title}
-            </span>
-          </motion.button>
+            <div className="flex-1 min-w-0">
+              <span className="font-medium text-sm text-foreground group-hover:text-primary transition-colors">
+                {suggestion.title}
+              </span>
+            </div>
+          </button>
         ))}
       </div>
-    </motion.div>
+    </div>
   );
 }
 

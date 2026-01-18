@@ -223,10 +223,10 @@ const ContactUs: React.FC = () => {
                   <div className="text-sm text-gray-600 dark:text-gray-300">
                     Prefer other channels?{" "}
                     <a
-                      href="mailto:soumalyadas80@gmail.com"
+                      href="mailto:miles2go@gmail.com"
                       className="text-primary underline"
                     >
-                      soumalyadas80@gmail.com
+                      miles2go@gmail.com
                     </a>
                   </div>
                 </div>
@@ -290,10 +290,10 @@ const ContactUs: React.FC = () => {
                       Phone
                     </p>
                     <a
-                      href="tel:+918637557035"
+                      href="tel:+91863773737"
                       className="font-medium text-primary"
                     >
-                      +91 863755****
+                      +91 86375573737
                     </a>
                   </div>
                 </div>
@@ -307,10 +307,10 @@ const ContactUs: React.FC = () => {
                       Email
                     </p>
                     <a
-                      href="mailto:soumalyadas80@gmail.com"
+                      href="mailto:miles2go@gmail.com"
                       className="font-medium text-primary"
                     >
-                      soumalyadas80@gmail.com
+                     miles2go@gmail.com
                     </a>
                   </div>
                 </div>
