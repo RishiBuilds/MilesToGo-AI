@@ -150,7 +150,7 @@ function ViewTrip() {
                             <Globe className="h-4 w-4 text-primary" />
                             <span className="text-sm font-medium text-muted-foreground">Trip Map</span>
                         </div>
-                        <div className="h-[500px] lg:h-[calc(100vh-200px)] rounded-2xl border border-border/50 overflow-hidden shadow-xl bg-black/5">
+                        <div className="h-500px lg:h-[calc(100vh-200px)] rounded-2xl border border-border/50 overflow-hidden shadow-xl bg-black/5">
                             <GlobalMap autoRotate={false} />
                         </div>
                     </div>
